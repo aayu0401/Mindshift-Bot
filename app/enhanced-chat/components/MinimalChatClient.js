@@ -1,61 +1,20 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { 
-  MessageCircle, 
-  Send, 
-  Mic, 
-  MicOff, 
-  Volume2, 
-  VolumeX,
-  Brain,
-  Heart,
-  Activity,
-  Shield,
-  Sparkles,
-  Zap,
-  Globe,
-  Accessibility,
-  Settings,
-  Maximize2,
-  Minimize2,
-  AlertTriangle,
-  TrendingUp,
-  Clock,
-  Star,
-  Target,
-  Lightbulb,
-  Compass,
-  Users,
-  BookOpen,
-  Eye,
-  EyeOff
-} from 'lucide-react';
 
-export default function SimpleChatClient() {
+export default function MinimalChatClient() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedMode, setSelectedMode] = useState('adaptive');
   const [sessionMetrics, setSessionMetrics] = useState({
     duration: 0,
     messageCount: 0,
     techniquesUsed: [],
-    emotionalJourney: [],
     crisisInterventions: 0
-  });
-  const [realTimeMetrics, setRealTimeMetrics] = useState({
-    sentiment: 0,
-    stress: 0,
-    engagement: 0,
-    progress: 0
   });
 
   const messagesEndRef = useRef(null);
-  const inputRef = useRef(null);
   const sessionStartTime = useRef(Date.now());
 
   useEffect(() => {
@@ -134,19 +93,10 @@ export default function SimpleChatClient() {
 
       setMessages(prev => [...prev, aiMessage]);
       
-      // Update metrics
       setSessionMetrics(prev => ({
         ...prev,
         messageCount: prev.messageCount + 1,
-        techniquesUsed: [...new Set([...prev.techniquesUsed, ...(data.techniques || [])])],
-        emotionalJourney: [...prev.emotionalJourney, data.sentiment?.classification || 'neutral']
-      }));
-
-      setRealTimeMetrics(prev => ({
-        ...prev,
-        sentiment: data.sentiment?.score || prev.sentiment,
-        engagement: data.techniques?.length > 0 ? prev.engagement + 0.2 : prev.engagement,
-        progress: prev.messageCount > 0 ? prev.progress + 0.1 : prev.progress
+        techniquesUsed: [...new Set([...prev.techniquesUsed, ...(data.techniques || [])])]
       }));
 
     } catch (error) {
@@ -188,9 +138,8 @@ export default function SimpleChatClient() {
 
         {/* Session Metrics */}
         <div className="mb-8 p-4 bg-gradient-to-r from-purple-100 to-blue-100 rounded-xl">
-          <h3 className="font-semibold text-gray-800 mb-3 flex items-center">
-            <Activity className="w-4 h-4 mr-2" />
-            Session Metrics
+          <h3 className="font-semibold text-gray-800 mb-3">
+            📊 Session Metrics
           </h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
@@ -207,82 +156,24 @@ export default function SimpleChatClient() {
             </div>
             {sessionMetrics.crisisInterventions > 0 && (
               <div className="flex justify-between text-red-600">
-                <span>Crisis Interventions:</span>
+                <span>🚨 Crisis Interventions:</span>
                 <span className="font-medium">{sessionMetrics.crisisInterventions}</span>
               </div>
             )}
           </div>
         </div>
 
-        {/* Real-time Metrics */}
-        <div className="mb-8 p-4 bg-gradient-to-r from-green-100 to-blue-100 rounded-xl">
-          <h3 className="font-semibold text-gray-800 mb-3 flex items-center">
-            <TrendingUp className="w-4 h-4 mr-2" />
-            Real-time Analysis
-          </h3>
-          <div className="space-y-3">
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-600">Sentiment</span>
-                <span className={`font-medium ${getSentimentColor(realTimeMetrics.sentiment)}`}>
-                  {realTimeMetrics.sentiment > 0.3 ? 'Positive' : realTimeMetrics.sentiment < -0.3 ? 'Negative' : 'Neutral'}
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    realTimeMetrics.sentiment > 0.3 ? 'bg-green-500' : 
-                    realTimeMetrics.sentiment < -0.3 ? 'bg-red-500' : 'bg-yellow-500'
-                  }`}
-                  style={{ width: `${Math.abs(realTimeMetrics.sentiment) * 100}%` }}
-                />
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-600">Engagement</span>
-                <span className="font-medium text-blue-600">
-                  {Math.round(realTimeMetrics.engagement * 100)}%
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${realTimeMetrics.engagement * 100}%` }}
-                />
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-600">Progress</span>
-                <span className="font-medium text-purple-600">
-                  {Math.round(realTimeMetrics.progress * 100)}%
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-purple-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${realTimeMetrics.progress * 100}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Therapeutic Mode Selection */}
         <div className="mb-8">
-          <h3 className="font-semibold text-gray-800 mb-3 flex items-center">
-            <Brain className="w-4 h-4 mr-2" />
-            Therapeutic Mode
+          <h3 className="font-semibold text-gray-800 mb-3">
+            🧠 Therapeutic Mode
           </h3>
           <div className="space-y-2">
             {[
-              { id: 'adaptive', name: 'Adaptive', icon: Brain, description: 'AI adapts to your needs' },
-              { id: 'empathetic', name: 'Empathetic', icon: Heart, description: 'Warm and supportive' },
-              { id: 'direct', name: 'Direct', icon: Target, description: 'Clear and focused' },
-              { id: 'mindfulness', name: 'Mindfulness', icon: Sparkles, description: 'Present-focused' }
+              { id: 'adaptive', name: 'Adaptive', description: 'AI adapts to your needs' },
+              { id: 'empathetic', name: 'Empathetic', description: 'Warm and supportive' },
+              { id: 'direct', name: 'Direct', description: 'Clear and focused' },
+              { id: 'mindfulness', name: 'Mindfulness', description: 'Present-focused' }
             ].map(mode => (
               <button
                 key={mode.id}
@@ -293,12 +184,9 @@ export default function SimpleChatClient() {
                     : 'bg-gray-50 border-2 border-transparent hover:bg-gray-100'
                 }`}
               >
-                <div className="flex items-center">
-                  <mode.icon className="w-4 h-4 mr-2 text-purple-600" />
-                  <div>
-                    <div className="font-medium text-gray-800">{mode.name}</div>
-                    <div className="text-xs text-gray-600">{mode.description}</div>
-                  </div>
+                <div>
+                  <div className="font-medium text-gray-800">{mode.name}</div>
+                  <div className="text-xs text-gray-600">{mode.description}</div>
                 </div>
               </button>
             ))}
@@ -307,18 +195,17 @@ export default function SimpleChatClient() {
 
         {/* AI Capabilities */}
         <div className="mb-8">
-          <h3 className="font-semibold text-gray-800 mb-3 flex items-center">
-            <Zap className="w-4 h-4 mr-2" />
-            AI Capabilities
+          <h3 className="font-semibold text-gray-800 mb-3">
+            ⚡ AI Capabilities
           </h3>
           <div className="space-y-2">
             {[
-              { key: 'crisisDetection', label: 'Crisis Detection', enabled: true },
-              { key: 'emotionAnalysis', label: 'Emotion Analysis', enabled: true },
-              { key: 'techniqueRecommendation', label: 'Technique Recommendation', enabled: true },
-              { key: 'realTimeProcessing', label: 'Real-time Processing', enabled: true }
+              { label: '🚨 Crisis Detection', enabled: true },
+              { label: '😊 Emotion Analysis', enabled: true },
+              { label: '🎯 Technique Recommendation', enabled: true },
+              { label: '⚡ Real-time Processing', enabled: true }
             ].map(capability => (
-              <div key={capability.key} className="flex items-center justify-between text-sm">
+              <div key={capability.label} className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">{capability.label}</span>
                 <div className={`w-2 h-2 rounded-full ${capability.enabled ? 'bg-green-500' : 'bg-gray-300'}`} />
               </div>
@@ -331,37 +218,13 @@ export default function SimpleChatClient() {
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <div className="bg-white/80 backdrop-blur-lg border-b border-white/20 p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center">
-                <MessageCircle className="w-6 h-6 text-purple-600 mr-2" />
-                <div>
-                  <h1 className="text-xl font-semibold text-gray-800">Enhanced Chat</h1>
-                  <p className="text-sm text-gray-600">AI-Powered Mental Health Support</p>
-                </div>
+          <div className="flex items-center">
+            <div className="flex items-center">
+              <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full mr-3"></div>
+              <div>
+                <h1 className="text-xl font-semibold text-gray-800">Enhanced Chat</h1>
+                <p className="text-sm text-gray-600">AI-Powered Mental Health Support</p>
               </div>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setIsVoiceEnabled(!isVoiceEnabled)}
-                className={`p-2 rounded-lg transition-all ${
-                  isVoiceEnabled ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-600'
-                }`}
-                title={isVoiceEnabled ? 'Disable Voice' : 'Enable Voice'}
-              >
-                {isVoiceEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-              </button>
-              
-              <button
-                onClick={() => setIsFullscreen(!isFullscreen)}
-                className={`p-2 rounded-lg transition-all ${
-                  isFullscreen ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'
-                }`}
-                title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
-              >
-                {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
-              </button>
             </div>
           </div>
         </div>
@@ -393,7 +256,7 @@ export default function SimpleChatClient() {
                       {/* Therapeutic Style & Techniques */}
                       {(message.metadata.therapeuticStyle || (message.metadata.techniques && message.metadata.techniques.length > 0)) && (
                         <div className="flex items-center space-x-2 text-xs text-gray-600">
-                          <Brain className="w-3 h-3" />
+                          <span>🧠</span>
                           <span className="capitalize">{message.metadata.therapeuticStyle}</span>
                           {message.metadata.techniques && (
                             <span>• {message.metadata.techniques.length} techniques</span>
@@ -418,9 +281,9 @@ export default function SimpleChatClient() {
                       {/* Crisis Alert */}
                       {message.metadata.isCrisis && (
                         <div className="p-3 bg-red-100 border border-red-300 rounded-lg flex items-center">
-                          <AlertTriangle className="w-4 h-4 text-red-600 mr-2" />
+                          <span className="text-2xl mr-2">🚨</span>
                           <div>
-                            <div className="font-medium text-red-800">🚨 Crisis Intervention Active</div>
+                            <div className="font-medium text-red-800">Crisis Intervention Active</div>
                             <div className="text-sm text-red-600">
                               Support resources have been provided
                             </div>
@@ -447,7 +310,7 @@ export default function SimpleChatClient() {
                       {/* Processing Time */}
                       {message.metadata.processingTime && (
                         <div className="text-xs text-gray-500">
-                          Processing time: {message.metadata.processingTime}ms
+                          ⚡ Processing time: {message.metadata.processingTime}ms
                         </div>
                       )}
                     </div>
@@ -482,7 +345,6 @@ export default function SimpleChatClient() {
         <div className="bg-white/80 backdrop-blur-lg border-t border-white/20 p-4">
           <div className="flex items-center space-x-3">
             <input
-              ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -498,7 +360,9 @@ export default function SimpleChatClient() {
               className="p-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-full hover:from-purple-600 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               title="Send Message"
             >
-              <Send className="w-5 h-5" />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
             </button>
           </div>
           
@@ -506,13 +370,13 @@ export default function SimpleChatClient() {
           <div className="flex items-center justify-between mt-3">
             <div className="flex space-x-2">
               <button className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs hover:bg-purple-200 transition-colors">
-                Breathing Exercise
+                🧘 Breathing
               </button>
               <button className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs hover:bg-blue-200 transition-colors">
-                Grounding
+                🌍 Grounding
               </button>
               <button className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs hover:bg-green-200 transition-colors">
-                Journal
+                📝 Journal
               </button>
             </div>
             
