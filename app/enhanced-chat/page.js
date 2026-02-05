@@ -1,5 +1,5 @@
-import EnhancedChatClient from './components/EnhancedChatClient';
+import SimpleChatClient from './components/SimpleChatClient';
 
 export default function EnhancedChat() {
-  return <EnhancedChatClient />;
+  return <SimpleChatClient />;
 }

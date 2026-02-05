@@ -26,8 +26,8 @@
     "recharts": "^3.7.0",
     "sentiment": "^5.0.2",
     "uuid": "^9.0.1",
-    "framer-motion": "^10.16.4",
-    "lucide-react": "^0.263.1"
+    "framer-motion": "^6.5.1",
+    "lucide-react": "^0.292.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.1.5",
