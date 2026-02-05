@@ -1,0 +1,53 @@
+{
+  "name": "mindshiftr",
+  "version": "1.0.0",
+  "description": "A comprehensive mental health platform with AI companionship and biometric analysis",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "jest",
+    "test:integration": "jest --config jest.integration.config.js",
+    "test:coverage": "jest --coverage",
+    "db:setup": "node scripts/setup-db.js",
+    "db:seed": "node scripts/seed-db.js",
+    "docker:build": "docker build -t mindshiftr .",
+    "docker:run": "docker-compose up -d"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "next": "16.1.6",
+    "pg": "^8.11.3",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "recharts": "^3.7.0",
+    "sentiment": "^5.0.2",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/react": "^16.0.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "jest": "^29.7.0",
+    "jest-environment-node": "^29.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "keywords": [
+    "mental health",
+    "ai companion",
+    "therapy",
+    "wellness",
+    "biometrics",
+    "screening",
+    "journaling"
+  ],
+  "author": "MindshiftR Team",
+  "license": "MIT"
+}

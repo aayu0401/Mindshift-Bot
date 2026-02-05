@@ -1,0 +1,1150 @@
+/**
+ * ============================================
+ * MINDSHIFTR - ENHANCED CHAT ENGINE
+ * Advanced Mental Health AI Companion
+ * ============================================
+ * 
+ * Features:
+ * - Clinical-grade therapeutic responses
+ * - Real-time crisis detection and intervention
+ * - Personalized treatment adaptation
+ * - Evidence-based protocol matching
+ * - Biometric data integration
+ * - Continuous learning and optimization
+ */
+
+import { enhancedKnowledgeBase } from './enhancedKnowledgeBase.js';
+import { advancedChatFeatures } from './advancedChatFeatures.js';
+import { clinicalValidation } from './clinicalValidation.js';
+import Sentiment from 'sentiment';
+
+const sentiment = new Sentiment();
+
+// Enhanced knowledge base for mental health
+const enhancedKnowledgeBase = {
+    crisisProtocols: [
+        {
+            id: 'suicide_prevention',
+            keywords: ['suicide', 'kill myself', 'end my life', 'want to die'],
+            severity: 5,
+            response: "I'm deeply concerned about your safety. Please call 988 or text HOME to 741741 for immediate help. You don't have to go through this alone.",
+            resources: [
+                { name: '988 Suicide & Crisis Lifeline', phone: '988' },
+                { name: 'Crisis Text Line', text: 'HOME to 741741' }
+            ]
+        },
+        {
+            id: 'self_harm_intervention',
+            keywords: ['hurt myself', 'self-harm', 'cutting'],
+            severity: 4,
+            response: "I hear that you're struggling with urges to self-harm. Let's try some alternatives: hold ice, snap a rubber band, or take a cold shower. I'm here to help you through this.",
+            alternatives: ['Hold ice cube', 'Snap rubber band', 'Cold shower', 'Intense exercise']
+        }
+    ],
+    therapeuticFrameworks: {
+        cbt: {
+            name: 'Cognitive Behavioral Therapy',
+            techniques: ['cognitive_restructuring', 'thought_challenging', 'behavioral_activation'],
+            distortions: ['all_or_nothing', 'catastrophizing', 'mind_reading', 'fortune_telling']
+        },
+        dbt: {
+            name: 'Dialectical Behavior Therapy',
+            techniques: ['distress_tolerance', 'emotion_regulation', 'mindfulness', 'interpersonal_effectiveness']
+        },
+        act: {
+            name: 'Acceptance and Commitment Therapy',
+            techniques: ['acceptance', 'defusion', 'present_moment', 'values', 'committed_action']
+        }
+    }
+};
+
+export class EnhancedChatEngine {
+    constructor() {
+        this.knowledgeBase = enhancedKnowledgeBase;
+        this.sessionContexts = new Map();
+        this.crisisMode = new Set();
+        this.advancedFeatures = advancedChatFeatures;
+        this.clinicalValidator = clinicalValidation;
+        this.therapeuticStyles = {
+            empathetic: {
+                tone: 'warm, supportive, validating',
+                techniques: ['reflection', 'validation', 'empathy'],
+                response_patterns: ['I hear that...', 'That sounds...', 'It makes sense that...']
+            },
+            direct: {
+                tone: 'clear, focused, solution-oriented',
+                techniques: ['psychoeducation', 'skill_building', 'action_planning'],
+                response_patterns: ['Let\'s focus on...', 'Here\'s what we can do...', 'The key is...']
+            },
+            socratic: {
+                tone: 'curious, questioning, insight-oriented',
+                techniques: ['socratic_questioning', 'cognitive_challenging', 'perspective_shifting'],
+                response_patterns: ['What if...', 'How might...', 'Could it be that...']
+            },
+            mindfulness: {
+                tone: 'calm, present, non-judgmental',
+                techniques: ['mindfulness', 'grounding', 'acceptance'],
+                response_patterns: ['Notice...', 'Allow yourself to...', 'Bring awareness to...']
+            }
+        };
+    }
+
+    // ============================================
+    // 🧠 MAIN RESPONSE GENERATION
+    // ============================================
+
+    async generateResponse(message, sessionId, context = {}) {
+        try {
+            // Initialize or retrieve session context
+            let sessionContext = this.sessionContexts.get(sessionId) || {
+                userId: context.userId || 'anonymous',
+                startTime: Date.now(),
+                messageCount: 0,
+                emotionalJourney: [],
+                techniquesUsed: [],
+                crisisLevel: 0,
+                lastMessageTime: null
+            };
+
+            // Update session context
+            sessionContext.messageCount++;
+            sessionContext.lastMessageTime = Date.now();
+
+            // Create or update user profile
+            if (!this.advancedFeatures.userProfiles.has(sessionContext.userId)) {
+                this.advancedFeatures.createUserProfile(sessionContext.userId, {
+                    personalization: context.userProfile || {}
+                });
+            }
+
+            // Analyze message with enhanced features
+            const messageAnalysis = this.analyzeMessage(message, sessionContext);
+
+            // Track emotional patterns
+            const emotionalPatterns = this.advancedFeatures.trackEmotionalPatterns(
+                sessionContext.userId, 
+                messageAnalysis.emotions, 
+                context
+            );
+
+            // Analyze conversation flow
+            const conversationFlow = this.advancedFeatures.analyzeConversationFlow(
+                sessionContext.userId, 
+                message, 
+                context
+            );
+
+            // Crisis detection with clinical validation
+            const crisisAssessment = this.detectCrisis(message, messageAnalysis);
+
+            if (crisisAssessment.isCrisis) {
+                this.crisisMode.add(sessionId);
+                sessionContext.crisisLevel = crisisAssessment.severity;
+                return this.generateCrisisResponse(crisisAssessment, sessionContext);
+            }
+
+            // Clinical validation of interventions
+            const clinicalValidation = this.clinicalValidator.validateIntervention(
+                messageAnalysis,
+                sessionContext,
+                context
+            );
+
+            // Generate multi-modal response
+            const multiModalResponse = this.advancedFeatures.generateMultiModalResponse(
+                sessionContext.userId,
+                messageAnalysis,
+                context
+            );
+
+            // Build enhanced response
+            const response = {
+                response: multiModalResponse.text.content,
+                therapeuticStyle: multiModalResponse.text.style,
+                tone: multiModalResponse.text.tone,
+                techniques: this.selectTechniques(messageAnalysis, clinicalValidation),
+                interventions: this.generateInterventions(messageAnalysis, clinicalValidation),
+                sentiment: messageAnalysis.sentiment,
+                emotions: messageAnalysis.emotions,
+                cognitiveDistortions: messageAnalysis.cognitiveDistortions,
+                severity: messageAnalysis.severity,
+                followUp: this.generateFollowUp(messageAnalysis, sessionContext),
+                educationalContent: this.generateEducationalContent(messageAnalysis, clinicalValidation),
+                suggestedActions: this.generateSuggestedActions(messageAnalysis, context),
+                isCrisis: false,
+                sessionInfo: {
+                    turnCount: sessionContext.messageCount,
+                    duration: Date.now() - sessionContext.startTime,
+                    emotionalJourney: [...sessionContext.emotionalJourney, messageAnalysis.sentiment],
+                    techniquesUsed: [...sessionContext.techniquesUsed]
+                },
+                // Advanced features
+                voice: multiModalResponse.voice,
+                visual: multiModalResponse.visual,
+                interactive: multiModalResponse.interactive,
+                adaptive: multiModalResponse.adaptive,
+                cultural: multiModalResponse.cultural,
+                accessibility: multiModalResponse.accessibility,
+                conversationFlow,
+                emotionalPatterns,
+                clinicalValidation
+            };
+
+            // Update session context
+            sessionContext.emotionalJourney.push(messageAnalysis.sentiment);
+            if (response.techniques) {
+                sessionContext.techniquesUsed.push(...response.techniques);
+            }
+            this.sessionContexts.set(sessionId, sessionContext);
+
+            // Update adaptive learning
+            this.advancedFeatures.updateAdaptiveLearning(sessionContext.userId, {
+                type: 'interaction',
+                message,
+                response,
+                context,
+                timestamp: Date.now()
+            });
+
+            return response;
+
+        } catch (error) {
+            console.error('Enhanced Chat Engine Error:', error);
+            return this.generateErrorResponse(error, sessionId);
+        }
+    }
+
+    // ============================================
+    // 🔍 MESSAGE ANALYSIS
+    // ============================================
+        
+        return this.userProfiles.get(userId);
+    }
+
+    // ============================================
+    // � CRISIS DETECTION & SAFETY MONITORING
+    // ============================================
+    
+    detectCrisis(message, userId) {
+        const crisisKeywords = [
+            'suicide', 'kill myself', 'end my life', 'want to die',
+            'hurt myself', 'self-harm', 'cutting',
+            'overdose', 'too much', 'can\'t stop',
+            'hearing voices', 'seeing things', 'paranoia'
+        ];
+        
+        const messageLower = message.toLowerCase();
+        const detectedKeywords = crisisKeywords.filter(keyword => 
+            messageLower.includes(keyword)
+        );
+        
+        if (detectedKeywords.length > 0) {
+            const crisisLevel = this.assessCrisisLevel(detectedKeywords, message);
+            
+            return {
+                isCrisis: true,
+                level: crisisLevel,
+                keywords: detectedKeywords,
+                protocol: this.getCrisisProtocol(detectedKeywords, crisisLevel)
+            };
+        }
+        
+        return { isCrisis: false };
+    }
+
+    assessCrisisLevel(keywords, message) {
+        const highRiskKeywords = ['suicide', 'kill myself', 'end my life', 'want to die'];
+        const mediumRiskKeywords = ['hurt myself', 'self-harm', 'cutting', 'overdose'];
+        const lowRiskKeywords = ['hearing voices', 'seeing things', 'paranoia'];
+        
+        if (keywords.some(k => highRiskKeywords.includes(k))) {
+            return 'high';
+        } else if (keywords.some(k => mediumRiskKeywords.includes(k))) {
+            return 'medium';
+        } else if (keywords.some(k => lowRiskKeywords.includes(k))) {
+            return 'low';
+        }
+        
+        return 'medium';
+    }
+
+    getCrisisProtocol(keywords, level) {
+        const protocols = this.knowledgeBase.crisisProtocols || [];
+        
+        return protocols.find(protocol => {
+            const keywordMatch = keywords.some(keyword => 
+                protocol.keywords?.includes(keyword)
+            );
+            const levelMatch = protocol.severity >= (level === 'high' ? 5 : level === 'medium' ? 4 : 3);
+            return keywordMatch && levelMatch;
+        }) || protocols[0] || {
+            id: 'default_crisis',
+            response: "I'm here to help. Please reach out to a mental health professional or call 988 for immediate support.",
+            resources: [{ name: '988 Crisis Line', phone: '988' }]
+        };
+    }
+
+    logCrisisEvent(userId, crisisData) {
+        if (!this.crisisPatterns) {
+            this.crisisPatterns = new Map();
+        }
+        
+        if (!this.crisisPatterns.has(userId)) {
+            this.crisisPatterns.set(userId, []);
+        }
+        
+        const userCrises = this.crisisPatterns.get(userId);
+        userCrises.push(crisisData);
+        
+        // Keep only last 50 crisis events per user
+        if (userCrises.length > 50) {
+            userCrises.splice(0, userCrises.length - 50);
+        }
+        
+        // Update user profile
+        const profile = this.getUserProfile(userId);
+        if (profile) {
+            profile.history.crisisEvents.push(crisisData);
+        }
+    }
+
+    // ============================================
+    // 📊 TRACKING & LEARNING
+    // ============================================
+    
+    trackInteraction(userId, message, response, analysis, approach) {
+        // Simple tracking for now - can be enhanced later
+        const profile = this.getUserProfile(userId);
+        if (profile) {
+            profile.history.interventions.push({
+                timestamp: new Date(),
+                intervention: {
+                    id: `interaction_${Date.now()}`,
+                    category: 'therapeutic_conversation',
+                    technique: approach.primaryStyle
+                },
+                outcome: {
+                    success: analysis.sentiment.classification !== 'negative',
+                    engagement: response.response.length > 100
+                },
+                feedback: {
+                    rating: null,
+                    effectiveness: null
+                }
+            });
+        }
+    }
+
+    recommendIntervention(userId, context) {
+        // Simple recommendation logic
+        return {
+            intervention: {
+                id: "general_support",
+                category: "support",
+                technique: "active_listening",
+                severity: context.severity || 2,
+                response: "I'm here to support you. Could you tell me more about what you're experiencing?",
+                followUp: "I'm listening carefully to understand how I can best help you."
+            },
+            score: 0.5,
+            reasoning: "Default supportive response"
+        };
+    }
+    
+    handleCrisisResponse(userId, crisisDetection, sessionContext) {
+        const protocol = crisisDetection.protocol;
+        
+        // Activate crisis mode
+        this.crisisMode.add(userId);
+        
+        // Log crisis event
+        this.logCrisisEvent(userId, {
+            message: sessionContext.lastMessage,
+            detection: crisisDetection,
+            timestamp: new Date()
+        });
+        
+        const response = {
+            response: protocol.response,
+            isCrisis: true,
+            crisisLevel: crisisDetection.level,
+            protocol: protocol.id,
+            resources: protocol.resources,
+            followUp: protocol.followUp,
+            therapeuticStyle: 'crisis_intervention',
+            techniques: ['safety_planning', 'crisis_intervention'],
+            immediateActions: this.getImmediateCrisisActions(crisisDetection.level),
+            requiresHumanIntervention: crisisDetection.level === 'high'
+        };
+        
+        return response;
+    }
+
+    getImmediateCrisisActions(level) {
+        const actions = {
+            high: [
+                'Call 988 or 911 immediately',
+                'Remove any means of harm',
+                'Stay with the person until help arrives',
+                'Do not leave them alone'
+            ],
+            medium: [
+                'Contact crisis support services',
+                'Create a safety plan',
+                'Remove immediate risks',
+                'Schedule emergency therapy session'
+            ],
+            low: [
+                'Practice grounding techniques',
+                'Use distress tolerance skills',
+                'Contact support person',
+                'Schedule regular check-in'
+            ]
+        };
+        
+        return actions[level] || actions.medium;
+    }
+
+    // ============================================
+    // 📊 MESSAGE ANALYSIS
+    // ============================================
+    
+    analyzeMessage(message, sessionContext) {
+        const sentimentScore = sentiment.analyze(message);
+        
+        return {
+            originalMessage: message,
+            sentiment: {
+                score: sentimentScore.score,
+                comparative: sentimentScore.comparative,
+                positive: sentimentScore.positive,
+                negative: sentimentScore.negative,
+                classification: this.classifySentiment(sentimentScore.score)
+            },
+            emotions: this.detectEmotions(message),
+            cognitiveDistortions: this.detectCognitiveDistortions(message),
+            intent: this.classifyIntent(message),
+            severity: this.assessSeverity(message, sentimentScore),
+            topics: this.extractTopics(message),
+            linguisticMarkers: this.analyzeLinguisticMarkers(message),
+            temporalContext: this.analyzeTemporalContext(message, sessionContext),
+            biometricCorrelation: this.analyzeBiometricCorrelation(message, sessionContext)
+        };
+    }
+
+    classifySentiment(score) {
+        if (score > 2) return 'positive';
+        if (score < -2) return 'negative';
+        return 'neutral';
+    }
+
+    detectEmotions(message) {
+        const emotionPatterns = {
+            anxiety: ['anxious', 'worried', 'panic', 'nervous', 'afraid', 'scared', 'tense'],
+            depression: ['sad', 'depressed', 'hopeless', 'worthless', 'empty', 'numb', 'blue'],
+            anger: ['angry', 'mad', 'furious', 'irritated', 'frustrated', 'annoyed'],
+            shame: ['ashamed', 'embarrassed', 'humiliated', 'guilty', 'mortified'],
+            fear: ['fear', 'scared', 'terrified', 'panic', 'dread'],
+            joy: ['happy', 'excited', 'joyful', 'pleased', 'glad', 'cheerful'],
+            gratitude: ['grateful', 'thankful', 'appreciative', 'blessed']
+        };
+        
+        const detectedEmotions = [];
+        const messageLower = message.toLowerCase();
+        
+        Object.entries(emotionPatterns).forEach(([emotion, patterns]) => {
+            const matches = patterns.filter(pattern => messageLower.includes(pattern));
+            if (matches.length > 0) {
+                detectedEmotions.push({
+                    emotion,
+                    intensity: matches.length / patterns.length,
+                    triggers: matches
+                });
+            }
+        });
+        
+        return detectedEmotions.sort((a, b) => b.intensity - a.intensity);
+    }
+
+    detectCognitiveDistortions(message) {
+        const distortions = {
+            all_or_nothing: ['always', 'never', 'perfect', 'failure', 'ruined'],
+            catastrophizing: ['terrible', 'awful', 'horrible', 'disaster', 'worst'],
+            mind_reading: ['they think', 'everyone thinks', 'they must think'],
+            fortune_telling: ['will happen', 'going to', 'definitely', 'for sure'],
+            overgeneralization: ['always', 'never', 'every time', 'whenever'],
+            labeling: ['i am', 'i\'m a', 'i\'m such a', 'i\'m just a'],
+            personalization: ['my fault', 'blame me', 'responsible', 'my responsibility']
+        };
+        
+        const detectedDistortions = [];
+        const messageLower = message.toLowerCase();
+        
+        Object.entries(distortions).forEach(([distortion, patterns]) => {
+            const matches = patterns.filter(pattern => messageLower.includes(pattern));
+            if (matches.length > 0) {
+                detectedDistortions.push({
+                    distortion,
+                    evidence: matches,
+                    confidence: matches.length / patterns.length
+                });
+            }
+        });
+        
+        return detectedDistortions;
+    }
+
+    classifyIntent(message) {
+        const intents = {
+            seeking_support: ['help', 'support', 'advice', 'guidance', 'what should i'],
+            sharing_experience: ['today', 'happened', 'experience', 'went', 'felt'],
+            asking_information: ['what is', 'how to', 'why do', 'explain'],
+            crisis: ['suicide', 'kill', 'hurt', 'end it', 'can\'t take'],
+            coping_strategies: ['cope', 'deal with', 'handle', 'manage'],
+            venting: ['just need to', 'get this out', 'vent', 'frustrated'],
+            seeking_validation: ['is this normal', 'am i crazy', 'wrong to feel'],
+            problem_solving: ['solve', 'fix', 'solution', 'what can i do']
+        };
+        
+        const messageLower = message.toLowerCase();
+        let bestIntent = { intent: 'general', confidence: 0 };
+        
+        Object.entries(intents).forEach(([intent, patterns]) => {
+            const matches = patterns.filter(pattern => messageLower.includes(pattern));
+            const confidence = matches.length / patterns.length;
+            
+            if (confidence > bestIntent.confidence) {
+                bestIntent = { intent, confidence, matches };
+            }
+        });
+        
+        return bestIntent;
+    }
+
+    assessSeverity(message, sentimentScore) {
+        let severity = 1; // baseline
+        
+        // Crisis keywords
+        if (message.toLowerCase().includes('suicide') || 
+            message.toLowerCase().includes('kill myself')) {
+            severity = 5;
+        }
+        
+        // Strong negative sentiment
+        if (sentimentScore.score < -3) {
+            severity = Math.max(severity, 4);
+        }
+        
+        // Hopelessness indicators
+        if (message.toLowerCase().includes('hopeless') || 
+            message.toLowerCase().includes('no point') ||
+            message.toLowerCase().includes('giving up')) {
+            severity = Math.max(severity, 3);
+        }
+        
+        // Moderate distress
+        if (sentimentScore.score < -1) {
+            severity = Math.max(severity, 2);
+        }
+        
+        return severity;
+    }
+
+    extractTopics(message) {
+        const topicPatterns = {
+            relationships: ['relationship', 'partner', 'boyfriend', 'girlfriend', 'husband', 'wife', 'family', 'friend'],
+            work: ['work', 'job', 'career', 'boss', 'coworker', 'unemployment', 'fired'],
+            health: ['health', 'doctor', 'medication', 'symptoms', 'pain', 'illness'],
+            sleep: ['sleep', 'insomnia', 'tired', 'exhausted', 'nightmare'],
+            anxiety: ['anxiety', 'panic', 'worry', 'nervous', 'stress'],
+            depression: ['depressed', 'sad', 'hopeless', 'empty', 'numb'],
+            trauma: ['trauma', 'abuse', 'assault', 'accident', 'attack'],
+            self_esteem: ['worthless', 'inadequate', 'failure', 'not good enough'],
+            addiction: ['addiction', 'sober', 'relapse', 'using', 'drugs', 'alcohol']
+        };
+        
+        const detectedTopics = [];
+        const messageLower = message.toLowerCase();
+        
+        Object.entries(topicPatterns).forEach(([topic, patterns]) => {
+            const matches = patterns.filter(pattern => messageLower.includes(pattern));
+            if (matches.length > 0) {
+                detectedTopics.push({
+                    topic,
+                    relevance: matches.length / patterns.length,
+                    keywords: matches
+                });
+            }
+        });
+        
+        return detectedTopics.sort((a, b) => b.relevance - a.relevance);
+    }
+
+    analyzeLinguisticMarkers(message) {
+        const markers = {
+            first_person_singular: ['i', 'me', 'my', 'mine', 'myself'],
+            first_person_plural: ['we', 'us', 'our', 'ours', 'ourselves'],
+            second_person: ['you', 'your', 'yours', 'yourself'],
+            third_person: ['he', 'she', 'they', 'him', 'her', 'them'],
+            negations: ['not', 'no', 'never', 'nothing', 'nowhere', 'neither'],
+            absolutist_words: ['always', 'never', 'every', 'all', 'none', 'only'],
+            tentative_words: ['maybe', 'perhaps', 'might', 'could', 'possibly'],
+            certainty_words: ['definitely', 'certainly', 'surely', 'absolutely']
+        };
+        
+        const wordCount = message.split(/\s+/).length;
+        const results = {};
+        
+        Object.entries(markers).forEach(([marker, words]) => {
+            const matches = words.filter(word => 
+                new RegExp(`\\b${word}\\b`, 'i').test(message)
+            );
+            results[marker] = {
+                count: matches.length,
+                percentage: (matches.length / wordCount) * 100,
+                words: matches
+            };
+        });
+        
+        return results;
+    }
+
+    analyzeTemporalContext(message, sessionContext) {
+        const temporalMarkers = {
+            past: ['yesterday', 'last week', 'before', 'used to', 'was', 'were'],
+            present: ['now', 'today', 'currently', 'right now', 'am', 'is', 'are'],
+            future: ['tomorrow', 'next week', 'will', 'going to', 'plan', 'future']
+        };
+        
+        const messageLower = message.toLowerCase();
+        let temporalFocus = 'present';
+        let maxCount = 0;
+        
+        Object.entries(temporalMarkers).forEach(([tense, markers]) => {
+            const count = markers.filter(marker => messageLower.includes(marker)).length;
+            if (count > maxCount) {
+                maxCount = count;
+                temporalFocus = tense;
+            }
+        });
+        
+        return {
+            focus: temporalFocus,
+            sessionProgression: sessionContext.turnCount,
+            timeSinceLastSession: this.calculateTimeSinceLastSession(sessionContext),
+            sessionDuration: Date.now() - sessionContext.sessionStart
+        };
+    }
+
+    calculateTimeSinceLastSession(sessionContext) {
+        if (!sessionContext.lastMessageTime) {
+            return 0; // First message in session
+        }
+        return Date.now() - sessionContext.lastMessageTime;
+    }
+
+    analyzeBiometricCorrelation(message, sessionContext) {
+        // This would integrate with real-time biometric data
+        // For now, return placeholder
+        return {
+            stressLevel: sessionContext.biometricData?.stress || 'unknown',
+            heartRateVariability: sessionContext.biometricData?.hrv || 'unknown',
+            sleepQuality: sessionContext.biometricData?.sleep || 'unknown',
+            correlation: 'pending_biometric_integration'
+        };
+    }
+
+    // ============================================
+    // 🎯 THERAPEUTIC APPROACH DETERMINATION
+    // ============================================
+    
+    determineTherapeuticApproach(messageAnalysis, userProfile, context) {
+        const approach = {
+            primaryStyle: 'empathetic',
+            secondaryStyle: null,
+            techniques: [],
+            interventions: [],
+            personalizationLevel: 'high',
+            culturalConsiderations: [],
+            developmentalLevel: 'adult'
+        };
+        
+        // Determine primary therapeutic style
+        approach.primaryStyle = this.selectTherapeuticStyle(messageAnalysis, userProfile);
+        
+        // Select techniques based on analysis
+        approach.techniques = this.selectTherapeuticTechniques(messageAnalysis, userProfile);
+        
+        // Recommend interventions
+        approach.interventions = this.recommendInterventions(messageAnalysis, userProfile);
+        
+        // Apply personalization
+        this.applyPersonalization(approach, userProfile, context);
+        
+        return approach;
+    }
+
+    selectTherapeuticStyle(messageAnalysis, userProfile) {
+        const styles = ['empathetic', 'direct', 'socratic', 'mindfulness'];
+        let bestStyle = 'empathetic';
+        let bestScore = 0;
+        
+        styles.forEach(style => {
+            const score = this.calculateStyleScore(style, messageAnalysis, userProfile);
+            if (score > bestScore) {
+                bestScore = score;
+                bestStyle = style;
+            }
+        });
+        
+        return bestStyle;
+    }
+
+    calculateStyleScore(style, messageAnalysis, userProfile) {
+        let score = 0;
+        
+        // Base scores for different scenarios
+        const styleScores = {
+            empathetic: {
+                high_distress: 5,
+                sharing_emotion: 4,
+                seeking_validation: 5,
+                crisis: 5
+            },
+            direct: {
+                problem_solving: 5,
+                seeking_information: 4,
+                coping_strategies: 4,
+                low_distress: 3
+            },
+            socratic: {
+                cognitive_distortions: 5,
+                insight_seeking: 4,
+                self_exploration: 4,
+                moderate_distress: 3
+            },
+            mindfulness: {
+                anxiety: 5,
+                panic: 5,
+                overwhelm: 4,
+                emotional_dysregulation: 5
+            }
+        };
+        
+        // Score based on message analysis
+        if (messageAnalysis.severity >= 4) {
+            score += styleScores[style].high_distress || 0;
+        }
+        
+        if (messageAnalysis.emotions.length > 0) {
+            score += styleScores[style].sharing_emotion || 0;
+        }
+        
+        if (messageAnalysis.intent.intent === 'seeking_validation') {
+            score += styleScores[style].seeking_validation || 0;
+        }
+        
+        if (messageAnalysis.cognitiveDistortions.length > 0) {
+            score += styleScores[style].cognitive_distortions || 0;
+        }
+        
+        if (messageAnalysis.emotions.some(e => e.emotion === 'anxiety')) {
+            score += styleScores[style].anxiety || 0;
+        }
+        
+        // Adjust based on user preferences
+        if (userProfile.preferences?.preferredTechniques?.includes(style)) {
+            score += 2;
+        }
+        
+        // Adjust based on past effectiveness
+        const userEffectiveness = userProfile.effectiveness?.communicationStyles?.get(style);
+        if (userEffectiveness && userEffectiveness.averageRating > 4) {
+            score += userEffectiveness.averageRating;
+        }
+        
+        return score;
+    }
+
+    selectTherapeuticTechniques(messageAnalysis, userProfile) {
+        const techniques = [];
+        
+        // Add techniques based on detected issues
+        if (messageAnalysis.cognitiveDistortions.length > 0) {
+            techniques.push('cognitive_restructuring');
+        }
+        
+        if (messageAnalysis.emotions.some(e => e.emotion === 'anxiety')) {
+            techniques.push('anxiety_management', 'relaxation_techniques');
+        }
+        
+        if (messageAnalysis.sentiment.classification === 'negative') {
+            techniques.push('emotional_regulation', 'validation');
+        }
+        
+        if (messageAnalysis.severity >= 3) {
+            techniques.push('grounding', 'distress_tolerance');
+        }
+        
+        // Add user-preferred techniques
+        if (userProfile.preferences?.preferredTechniques) {
+            techniques.push(...userProfile.preferences.preferredTechniques);
+        }
+        
+        // Remove duplicates and limit to 5 techniques
+        return [...new Set(techniques)].slice(0, 5);
+    }
+
+    recommendInterventions(messageAnalysis, userProfile) {
+        const interventions = [];
+        
+        // Get recommendation from local recommendation system
+        const recommendation = this.recommendIntervention(
+            userProfile.userId,
+            {
+                message: messageAnalysis.originalMessage,
+                severity: messageAnalysis.severity,
+                emotions: messageAnalysis.emotions,
+                topics: messageAnalysis.topics
+            }
+        );
+        
+        if (recommendation && recommendation.intervention) {
+            interventions.push(recommendation.intervention);
+        }
+        
+        return interventions;
+    }
+
+    applyPersonalization(approach, userProfile, context) {
+        // Cultural considerations
+        if (context.culturalBackground) {
+            approach.culturalConsiderations.push(context.culturalBackground);
+        }
+        
+        // Developmental level
+        if (context.age) {
+            if (context.age < 18) approach.developmentalLevel = 'adolescent';
+            else if (context.age > 65) approach.developmentalLevel = 'elderly';
+        }
+        
+        // Literacy level
+        if (context.literacyLevel) {
+            approach.literacyLevel = context.literacyLevel;
+        }
+    }
+
+    // ============================================
+    // 💬 RESPONSE GENERATION
+    // ============================================
+    
+    async generateTherapeuticResponse(messageAnalysis, therapeuticApproach, userProfile, sessionContext) {
+        const style = this.therapeuticStyles[therapeuticApproach.primaryStyle];
+        
+        // Build response components
+        const response = {
+            response: '',
+            therapeuticStyle: therapeuticApproach.primaryStyle,
+            techniques: therapeuticApproach.techniques,
+            interventions: therapeuticApproach.interventions,
+            sentiment: messageAnalysis.sentiment,
+            emotions: messageAnalysis.emotions,
+            followUp: null,
+            suggestedActions: [],
+            educationalContent: null,
+            personalization: {
+                style: therapeuticApproach.primaryStyle,
+                techniques: therapeuticApproach.techniques,
+                culturalAdaptations: therapeuticApproach.culturalConsiderations
+            }
+        };
+        
+        // Generate main response
+        response.response = this.buildMainResponse(messageAnalysis, therapeuticApproach, userProfile, sessionContext);
+        
+        // Add follow-up questions
+        response.followUp = this.generateFollowUp(messageAnalysis, therapeuticApproach, sessionContext);
+        
+        // Add suggested actions
+        response.suggestedActions = this.generateSuggestedActions(messageAnalysis, therapeuticApproach);
+        
+        // Add educational content if appropriate
+        response.educationalContent = this.generateEducationalContent(messageAnalysis, therapeuticApproach);
+        
+        return response;
+    }
+
+    buildMainResponse(messageAnalysis, therapeuticApproach, userProfile, sessionContext) {
+        const style = this.therapeuticStyles[therapeuticApproach.primaryStyle];
+        let response = '';
+        
+        // Opening based on style
+        const openings = {
+            empathetic: [
+                'I hear that you\'re feeling...',
+                'It sounds like...',
+                'I can understand why...',
+                'That makes sense that...'
+            ],
+            direct: [
+                'Let\'s focus on...',
+                'Here\'s what we can do about...',
+                'The key issue here is...',
+                'I want to help you with...'
+            ],
+            socratic: [
+                'What if we explored...',
+                'How might you think about...',
+                'Could it be that...',
+                'What do you notice when...'
+            ],
+            mindfulness: [
+                'Notice what you\'re feeling right now...',
+                'Allow yourself to experience...',
+                'Bring awareness to...',
+                'Let\'s pause and notice...'
+            ]
+        };
+        
+        const opening = openings[therapeuticApproach.primaryStyle][
+            Math.floor(Math.random() * openings[therapeuticApproach.primaryStyle].length)
+        ];
+        
+        response += opening + ' ';
+        
+        // Add validation/empathy
+        if (messageAnalysis.emotions.length > 0) {
+            response += this.validateEmotions(messageAnalysis.emotions) + ' ';
+        }
+        
+        // Add therapeutic technique application
+        response += this.applyTherapeuticTechnique(messageAnalysis, therapeuticApproach);
+        
+        // Add personalized element
+        response += this.addPersonalizedElement(messageAnalysis, userProfile, sessionContext);
+        
+        return response;
+    }
+
+    validateEmotions(emotions) {
+        const primaryEmotion = emotions[0];
+        if (!primaryEmotion) return '';
+        
+        const validations = {
+            anxiety: 'anxiety can feel overwhelming, and it\'s completely valid to feel this way',
+            depression: 'feeling depressed is heavy, and your feelings are understandable',
+            anger: 'anger often masks deeper emotions, and it\'s okay to feel angry',
+            shame: 'shame is a painful emotion, and you deserve compassion',
+            fear: 'fear is a natural protective response, even when it feels excessive'
+        };
+        
+        return validations[primaryEmotion.emotion] || 
+               `feeling ${primaryEmotion.emotion} is valid and understandable`;
+    }
+
+    applyTherapeuticTechnique(messageAnalysis, therapeuticApproach) {
+        const technique = therapeuticApproach.techniques[0];
+        if (!technique) return '';
+        
+        const techniqueApplications = {
+            cognitive_restructuring: 'Let\'s look at the thoughts behind these feelings. Are there alternative ways to interpret this situation?',
+            anxiety_management: 'When anxiety rises, your nervous system is trying to protect you. We can work with it rather than against it.',
+            emotional_regulation: 'Emotions are like waves - they rise and fall. We can learn to surf them rather than be pulled under.',
+            grounding: 'Let\'s bring you back to the present moment. What can you see, hear, and feel right now?',
+            relaxation_techniques: 'Your body is holding tension. Let\'s practice releasing it together.',
+            distress_tolerance: 'This feeling is intense but temporary. You have survived difficult moments before.',
+            mindfulness: 'Notice the thoughts and feelings without judgment. They are visitors, not residents.'
+        };
+        
+        return techniqueApplications[technique] || '';
+    }
+
+    addPersonalizedElement(messageAnalysis, userProfile, sessionContext) {
+        // Reference previous sessions if appropriate
+        if (sessionContext.turnCount > 1) {
+            const previousTopics = sessionContext.topicsDiscussed;
+            if (previousTopics.length > 0) {
+                return ` I remember we talked about ${previousTopics[previousTopics.length - 1]} before. How does this connect?`;
+            }
+        }
+        
+        // Reference user progress
+        const progress = userProfile.history?.progressMarkers;
+        if (progress && progress.length > 0) {
+            const recentProgress = progress[progress.length - 1];
+            if (recentProgress.markers.improvement === 'improving') {
+                return ' I\'ve noticed you\'ve been making progress - that\'s worth acknowledging.';
+            }
+        }
+        
+        return '';
+    }
+
+    generateFollowUp(messageAnalysis, therapeuticApproach, sessionContext) {
+        const followUps = {
+            empathetic: [
+                'How does that land with you?',
+                'What resonates most with what I shared?',
+                'Would you like to explore this further?'
+            ],
+            direct: [
+                'What step feels most doable right now?',
+                'Which strategy would you like to try first?',
+                'What\'s one thing you can do today?'
+            ],
+            socratic: [
+                'What do you notice about that thought?',
+                'How might you respond differently?',
+                'What would you tell a friend in this situation?'
+            ],
+            mindfulness: [
+                'What do you notice in your body right now?',
+                'Can you allow this feeling to be here without judgment?',
+                'What would it be like to accept this moment as it is?'
+            ]
+        };
+        
+        const options = followUps[therapeuticApproach.primaryStyle];
+        return options[Math.floor(Math.random() * options.length)];
+    }
+
+    generateSuggestedActions(messageAnalysis, therapeuticApproach) {
+        const actions = [];
+        
+        // Add technique-specific actions
+        therapeuticApproach.techniques.forEach(technique => {
+            const techniqueActions = {
+                cognitive_restructuring: [
+                    { action: 'Challenge one negative thought', tool: '/tasks/cbt' },
+                    { action: 'Complete a thought record', tool: '/tasks/journal' }
+                ],
+                anxiety_management: [
+                    { action: 'Practice 4-7-8 breathing', tool: '/tasks/breathing' },
+                    { action: 'Try progressive muscle relaxation', tool: '/tasks/grounding' }
+                ],
+                grounding: [
+                    { action: 'Use 5-4-3-2-1 grounding', tool: '/tasks/grounding' },
+                    { action: 'Hold ice cube for distress tolerance', tool: '/crisis' }
+                ],
+                mindfulness: [
+                    { action: '5-minute mindfulness meditation', tool: '/tasks/mindfulness' },
+                    { action: 'Body scan practice', tool: '/tasks/mindfulness' }
+                ]
+            };
+            
+            if (techniqueActions[technique]) {
+                actions.push(...techniqueActions[technique]);
+            }
+        });
+        
+        // Remove duplicates and limit to 3 actions
+        return [...new Map(actions.map(action => [action.action, action])).values()].slice(0, 3);
+    }
+
+    generateEducationalContent(messageAnalysis, therapeuticApproach) {
+        // Add relevant psychoeducation
+        if (messageAnalysis.cognitiveDistortions.length > 0) {
+            return {
+                title: 'Understanding Cognitive Distortions',
+                content: 'Cognitive distortions are biased ways of thinking that can maintain negative emotions. Learning to identify and challenge them is a key CBT skill.',
+                furtherReading: '/library/cognitive-distortions'
+            };
+        }
+        
+        if (messageAnalysis.emotions.some(e => e.emotion === 'anxiety')) {
+            return {
+                title: 'The Fight-Flight-Freeze Response',
+                content: 'Anxiety activates your body\'s threat response system. Understanding this can help you work with anxiety rather than against it.',
+                furtherReading: '/library/anxiety'
+            };
+        }
+        
+        return null;
+    }
+
+    // ============================================
+    // 📝 SESSION MANAGEMENT
+    // ============================================
+    
+    getSessionContext(userId, sessionId) {
+        const key = `${userId}_${sessionId}`;
+        if (!this.sessionContexts.has(key)) {
+            this.sessionContexts.set(key, {
+                userId,
+                sessionId,
+                sessionStart: Date.now(),
+                turnCount: 0,
+                lastMessage: '',
+                topicsDiscussed: [],
+                emotionalTrajectory: [],
+                techniquesUsed: [],
+                biometricData: null
+            });
+        }
+        return this.sessionContexts.get(key);
+    }
+
+    updateSessionContext(sessionId, message, response, analysis) {
+        const context = this.sessionContexts.get(sessionId);
+        if (!context) return;
+        
+        context.turnCount++;
+        context.lastMessage = message;
+        context.emotionalTrajectory.push(analysis.sentiment.score);
+        context.techniquesUsed.push(...response.techniques);
+        
+        // Add topics
+        analysis.topics.forEach(topic => {
+            if (!context.topicsDiscussed.includes(topic.topic)) {
+                context.topicsDiscussed.push(topic.topic);
+            }
+        });
+        
+        // Keep trajectory to last 20 turns
+        if (context.emotionalTrajectory.length > 20) {
+            context.emotionalTrajectory.shift();
+        }
+    }
+
+    // ============================================
+    // 📊 TRACKING & LEARNING
+    // ============================================
+    
+    trackInteraction(userId, message, response, analysis, approach) {
+        // Track for local learning system
+        const profile = this.getUserProfile(userId);
+        if (profile) {
+            profile.history.interventions.push({
+                timestamp: new Date(),
+                intervention: {
+                    id: `interaction_${Date.now()}`,
+                    category: 'therapeutic_conversation',
+                    technique: approach.primaryStyle,
+                    severity: analysis.severity
+                },
+                outcome: {
+                    success: analysis.sentiment.classification !== 'negative',
+                    engagement: response.response.length > 100
+                },
+                feedback: {
+                    rating: null, // Would be provided by user feedback
+                    effectiveness: null // Would be determined by outcomes
+                }
+            });
+        }
+    }
+
+    generateErrorResponse(error) {
+        return {
+            response: "I'm having difficulty processing that right now. Let's try a different approach. Could you tell me more about what's on your mind?",
+            isError: true,
+            error: error.message,
+            therapeuticStyle: 'empathetic',
+            techniques: ['active_listening', 'error_recovery']
+        };
+    }
+}
+
+// Export singleton instance
+export const enhancedChatEngine = new EnhancedChatEngine();
+export default enhancedChatEngine;
