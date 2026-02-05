@@ -5,15 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import PremiumBackground from '../components/PremiumBackground';
 import { UserProgressService, CrisisService, VitalsService, ChatService } from '@/lib/services';
+import BotSettings from './components/BotSettings';
 
 /**
  * ============================================
- * MINDSHIFTR AI - ENHANCED COMPANION
- * Multi-modal therapeutic chatbot with:
- * - Multiple therapy modes (Advice, Vent, CBT, Mindfulness)
- * - Reinforcement Learning persona adaptation
- * - Crisis detection & escalation
- * - Tool suggestions based on conversation
+ * MINDSHIFTR AI - ENHANCED COMPANION (FIXED)
  * ============================================
  */
 
@@ -67,70 +63,6 @@ const VENT_RESPONSES = [
   "I'm not going anywhere."
 ];
 
-const CBT_EXERCISES = {
-  thoughtChallenge: {
-    intro: "Let's challenge that thought together. This is called cognitive restructuring.",
-    steps: [
-      "First, what's the automatic thought that came up?",
-      "What emotion does this thought create? Rate it 1-10.",
-      "What evidence supports this thought?",
-      "What evidence goes AGAINST this thought?",
-      "Now, what's a more balanced way to see this?"
-    ]
-  },
-  behavioralExperiment: {
-    intro: "Let's test that belief. We'll design a small experiment.",
-    steps: [
-      "What belief are we testing?",
-      "What's a small, safe way to test it?",
-      "What do you predict will happen?",
-      "Try it and report back!"
-    ]
-  }
-};
-
-const MINDFULNESS_EXERCISES = {
-  breathing_478: {
-    name: "4-7-8 Breathing",
-    script: [
-      "Let's do 4-7-8 breathing. Find a comfortable position.",
-      "Breathe IN through your nose for 4 seconds... 1... 2... 3... 4...",
-      "HOLD your breath for 7 seconds... 1... 2... 3... 4... 5... 6... 7...",
-      "Now breathe OUT slowly through your mouth for 8 seconds... 1... 2... 3... 4... 5... 6... 7... 8...",
-      "Beautiful. Let's do that again. Breathe IN for 4...",
-      "HOLD for 7...",
-      "And OUT for 8...",
-      "One more round. You're doing great.",
-      "Notice how your body feels now. What do you observe?"
-    ]
-  },
-  grounding_54321: {
-    name: "5-4-3-2-1 Grounding",
-    script: [
-      "Let's do a grounding exercise. This will anchor you to the present moment.",
-      "Name 5 things you can SEE around you right now.",
-      "Good. Now, 4 things you can TOUCH or feel.",
-      "3 things you can HEAR in this moment.",
-      "2 things you can SMELL (or imagine smelling).",
-      "And 1 thing you can TASTE.",
-      "Take a deep breath. You are here. You are safe. You are grounded."
-    ]
-  },
-  bodyScan: {
-    name: "Body Scan",
-    script: [
-      "Let's do a quick body scan. Close your eyes if comfortable.",
-      "Starting at the top of your head... notice any tension there. Let it go.",
-      "Move down to your forehead, your eyes, your jaw. Soften them.",
-      "Notice your shoulders. They often hold stress. Let them drop.",
-      "Scan down your arms to your hands. Unclench if needed.",
-      "Feel your chest and belly. Notice your breath moving there.",
-      "Continue to your hips, your legs, your feet.",
-      "Now feel your whole body as one. You are safe. You are present."
-    ]
-  }
-};
-
 export default function BotPage() {
   const [messages, setMessages] = useState([
     {
@@ -142,10 +74,9 @@ export default function BotPage() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [mode, setMode] = useState('advice');
-  const [showModeSelector, setShowModeSelector] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [suggestedTools, setSuggestedTools] = useState([]);
-  const [exerciseStep, setExerciseStep] = useState(null);
-  const [currentExercise, setCurrentExercise] = useState(null);
+  const [error, setError] = useState(null);
 
   // Reinforcement Learning State
   const [weights, setWeights] = useState({ empathetic: 1.0, direct: 1.0, socratic: 1.0, mindfulness: 1.0 });
@@ -160,16 +91,20 @@ export default function BotPage() {
 
   // Load weights and vitals from localStorage on mount
   useEffect(() => {
-    const progress = UserProgressService.getProgress();
-    if (progress.weights) {
-      setWeights(progress.weights);
-    }
+    try {
+      const progress = UserProgressService.getProgress();
+      if (progress.weights) {
+        setWeights(progress.weights);
+      }
 
-    // Load latest vitals if available
-    const vitalsHistory = VitalsService.getVitalsHistory();
-    if (vitalsHistory.length > 0) {
-      const latestVitals = vitalsHistory[vitalsHistory.length - 1];
-      setUserVitals(latestVitals);
+      // Load latest vitals if available
+      const vitalsHistory = VitalsService.getVitalsHistory();
+      if (vitalsHistory.length > 0) {
+        const latestVitals = vitalsHistory[vitalsHistory.length - 1];
+        setUserVitals(latestVitals);
+      }
+    } catch (err) {
+      console.error('Error loading user data:', err);
     }
   }, []);
 
@@ -185,41 +120,23 @@ export default function BotPage() {
   const handleFeedback = (isPositive) => {
     if (!lastUsedStyle) return;
 
-    const delta = isPositive ? 0.2 : -0.2;
-    const newWeights = UserProgressService.updateWeights(lastUsedStyle, delta);
-    setWeights(newWeights);
+    try {
+      const delta = isPositive ? 0.2 : -0.2;
+      const newWeights = UserProgressService.updateWeights(lastUsedStyle, delta);
+      setWeights(newWeights);
 
-    // Visual feedback
-    const feedbackEl = document.getElementById('feedback-toast');
-    if (feedbackEl) {
-      feedbackEl.textContent = isPositive ? "Thanks! I'll remember that." : "I'll adjust my approach.";
-      feedbackEl.classList.add('show');
-      setTimeout(() => feedbackEl.classList.remove('show'), 2000);
+      // Visual feedback
+      if (typeof window !== 'undefined') {
+        const feedbackEl = document.getElementById('feedback-toast');
+        if (feedbackEl) {
+          feedbackEl.textContent = isPositive ? "Thanks! I'll remember that." : "I'll adjust my approach.";
+          feedbackEl.classList.add('show');
+          setTimeout(() => feedbackEl.classList.remove('show'), 2000);
+        }
+      }
+    } catch (err) {
+      console.error('Error handling feedback:', err);
     }
-  };
-
-  // Guided exercise handler
-  const runGuidedExercise = async (exercise) => {
-    setCurrentExercise(exercise);
-    setExerciseStep(0);
-
-    for (let i = 0; i < exercise.script.length; i++) {
-      setIsTyping(true);
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      setMessages(prev => [...prev, {
-        role: 'bot',
-        content: exercise.script[i],
-        isExercise: true
-      }]);
-      setIsTyping(false);
-      setExerciseStep(i + 1);
-
-      await new Promise(resolve => setTimeout(resolve, 4000)); // Pause between steps
-    }
-
-    setCurrentExercise(null);
-    setExerciseStep(null);
   };
 
   const handleSend = async (e, textOverride = null) => {
@@ -227,6 +144,8 @@ export default function BotPage() {
 
     const text = textOverride || input;
     if (!text.trim() || isTyping) return;
+
+    setError(null);
 
     // Crisis check
     if (CrisisService.checkForCrisis(text)) {
@@ -251,96 +170,34 @@ export default function BotPage() {
     setInput("");
     setIsTyping(true);
 
-    // Mode-specific handling
-    if (mode === 'vent') {
-      // Vent mode - just listen
-      setTimeout(() => {
-        const response = VENT_RESPONSES[Math.floor(Math.random() * VENT_RESPONSES.length)];
-        setMessages(prev => [...prev, { role: 'bot', content: response, style: 'empathetic' }]);
-        setIsTyping(false);
-      }, 1500);
-
-    } else if (mode === 'mindfulness') {
-      // Mindfulness mode - check for exercise triggers
-      const lowerText = text.toLowerCase();
-
-      if (lowerText.includes('breathing') || lowerText.includes('breathe')) {
-        setIsTyping(false);
-        runGuidedExercise(MINDFULNESS_EXERCISES.breathing_478);
-      } else if (lowerText.includes('ground') || lowerText.includes('5-4-3-2-1') || lowerText.includes('54321')) {
-        setIsTyping(false);
-        runGuidedExercise(MINDFULNESS_EXERCISES.grounding_54321);
-      } else if (lowerText.includes('body scan') || lowerText.includes('body')) {
-        setIsTyping(false);
-        runGuidedExercise(MINDFULNESS_EXERCISES.bodyScan);
-      } else {
-        // Default mindfulness response
+    try {
+      // Mode-specific handling
+      if (mode === 'vent') {
+        // Vent mode - just listen
         setTimeout(() => {
-          setMessages(prev => [...prev, {
-            role: 'bot',
-            content: "Let's bring awareness to the present moment. I can guide you through: 4-7-8 Breathing, the 5-4-3-2-1 Grounding exercise, or a Body Scan. Which feels right for you?",
-            style: 'mindfulness'
-          }]);
-          setIsTyping(false);
-        }, 1000);
-      }
-
-    } else if (mode === 'cbt') {
-      // CBT mode - structured cognitive exercises
-      try {
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: text,
-            weights: { ...weights, socratic: weights.socratic + 0.5 }, // Bias toward Socratic for CBT
-            mode: 'cbt'
-          })
-        });
-        const data = await res.json();
-
-        // Add CBT-specific framing
-        let response = data.response;
-        if (!response.includes("?")) {
-          response += " What thoughts came up when that happened?";
-        }
-
-        setTimeout(() => {
-          setMessages(prev => [...prev, {
-            role: 'bot',
-            content: response,
-            style: data.usedStyle || 'socratic',
-            techniques: data.techniques,
-            interventions: data.interventions,
-            technique: 'CBT'
-          }]);
-          if (data.suggestedActions) setSuggestedTools(data.suggestedActions.map(t => t.tool || t.path || t));
-          if (data.therapeuticStyle) setLastUsedStyle(data.therapeuticStyle);
+          const response = VENT_RESPONSES[Math.floor(Math.random() * VENT_RESPONSES.length)];
+          setMessages(prev => [...prev, { role: 'bot', content: response, style: 'empathetic' }]);
           setIsTyping(false);
         }, 1500);
 
-      } catch (err) {
-        setIsTyping(false);
-        setMessages(prev => [...prev, {
-          role: 'bot',
-          content: "I'm having trouble connecting. Let's try a simpler approach: What thought is bothering you most right now?"
-        }]);
-      }
-
-    } else {
-      // Advice mode - full AI response with vitals awareness
-      try {
+      } else {
+        // All other modes - use API
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             message: text,
-            weights,
-            mode: 'advice',
+            weights: mode === 'cbt' ? { ...weights, socratic: weights.socratic + 0.5 } : weights,
+            mode,
             userId,
-            vitals: userVitals // Pass vitals for context-aware responses
+            vitals: userVitals
           })
         });
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
         const data = await res.json();
 
         if (data.therapeuticStyle) setLastUsedStyle(data.therapeuticStyle);
@@ -362,19 +219,21 @@ export default function BotPage() {
             interventions: data.interventions,
             followUp: data.followUp,
             educationalContent: data.educationalContent,
-            isCrisis: data.isCrisis || false
+            isCrisis: data.isCrisis || false,
+            technique: mode === 'cbt' ? 'CBT' : null
           }]);
           setIsTyping(false);
         }, delay);
 
-      } catch (err) {
-        console.error('Chat error:', err);
-        setIsTyping(false);
-        setMessages(prev => [...prev, {
-          role: 'bot',
-          content: "I'm having trouble connecting right now. Please try again in a moment."
-        }]);
       }
+    } catch (err) {
+      console.error('Chat error:', err);
+      setError('Failed to send message. Please try again.');
+      setIsTyping(false);
+      setMessages(prev => [...prev, {
+        role: 'bot',
+        content: "I'm having trouble connecting right now. Please try again in a moment."
+      }]);
     }
   };
 
@@ -394,6 +253,14 @@ export default function BotPage() {
     <main className="chat-layout">
       <PremiumBackground />
 
+      {/* Error Display */}
+      {error && (
+        <div className="error-banner">
+          <span>⚠️ {error}</span>
+          <button onClick={() => setError(null)}>×</button>
+        </div>
+      )}
+
       {/* Feedback Toast */}
       <div id="feedback-toast" className="feedback-toast"></div>
 
@@ -409,31 +276,10 @@ export default function BotPage() {
             <span className="status-text">{MODES.find(m => m.id === mode)?.description}</span>
           </div>
         </div>
-        <button className="mode-toggle-btn" onClick={() => setShowModeSelector(!showModeSelector)}>
+        <button className="mode-toggle-btn" onClick={() => setShowSettings(true)}>
           ⚙️
         </button>
       </div>
-
-      {/* Mode Selector */}
-      {showModeSelector && (
-        <div className="mode-selector-overlay" onClick={() => setShowModeSelector(false)}>
-          <div className="mode-selector-panel" onClick={e => e.stopPropagation()}>
-            <h3>Choose Therapy Mode</h3>
-            <div className="mode-options">
-              {MODES.map(m => (
-                <button
-                  key={m.id}
-                  className={`mode-option ${mode === m.id ? 'active' : ''}`}
-                  onClick={() => { setMode(m.id); setShowModeSelector(false); }}
-                >
-                  <span className="mode-label">{m.label}</span>
-                  <span className="mode-desc">{m.description}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Messages Area */}
       <div className="messages-container">
@@ -444,7 +290,7 @@ export default function BotPage() {
                 <div className="avatar-inner" style={{ background: getModeColor() }}>M</div>
               </div>
             )}
-            <div className={`message-bubble ${msg.role} ${msg.isCrisis ? 'crisis' : ''} ${msg.isExercise ? 'exercise' : ''}`}>
+            <div className={`message-bubble ${msg.role} ${msg.isCrisis ? 'crisis' : ''}`}>
               {msg.content}
               {msg.technique && (
                 <span className="technique-badge">{msg.technique}</span>
@@ -510,7 +356,7 @@ export default function BotPage() {
       )}
 
       {/* Quick Replies */}
-      {!isTyping && !currentExercise && (
+      {!isTyping && (
         <div className="quick-replies">
           {currentQuickReplies.map((reply, i) => (
             <button key={i} onClick={() => handleSend(null, reply)} className="chip">
@@ -529,7 +375,7 @@ export default function BotPage() {
             onChange={(e) => setInput(e.target.value)}
             placeholder={mode === 'vent' ? "Speak freely... I'm just listening." : "Message MindshiftR..."}
             className="chat-input"
-            disabled={isTyping || currentExercise}
+            disabled={isTyping}
           />
           <button
             type="submit"
@@ -542,426 +388,401 @@ export default function BotPage() {
         </form>
       </div>
 
+      {/* Settings Panel */}
+      <BotSettings
+        mode={mode}
+        setMode={setMode}
+        weights={weights}
+        setWeights={setWeights}
+        onClose={() => setShowSettings(false)}
+        isVisible={showSettings}
+      />
+
       <style jsx>{`
-                .chat-layout {
-                    height: 100vh;
-                    padding-top: 0;
-                    display: flex;
-                    flex-direction: column;
-                    position: relative;
-                    overflow: hidden;
-                }
+        .chat-layout {
+          height: 100vh;
+          padding-top: 0;
+          display: flex;
+          flex-direction: column;
+          position: relative;
+          overflow: hidden;
+        }
 
-                .chat-header {
-                    z-index: 50;
-                    padding: 1rem 1.5rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 1rem;
-                    background: rgba(15, 23, 42, 0.95);
-                    border-bottom: 1px solid rgba(255,255,255,0.05);
-                    backdrop-filter: blur(20px);
-                }
+        .error-banner {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          background: rgba(239, 68, 68, 0.9);
+          color: white;
+          padding: 1rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          z-index: 1000;
+        }
 
-                .icon-circle {
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    background: rgba(255,255,255,0.1);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: white;
-                    font-size: 1.2rem;
-                    transition: all 0.2s;
-                }
-                .icon-circle:hover { background: rgba(255,255,255,0.2); }
+        .error-banner button {
+          background: none;
+          border: none;
+          color: white;
+          font-size: 1.2rem;
+          cursor: pointer;
+        }
 
-                .bot-info { flex: 1; }
-                .bot-title { font-size: 1.1rem; margin: 0; color: #fff; font-weight: 700; }
-                .status-row { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.2rem; }
-                .status-dot { width: 8px; height: 8px; border-radius: 50%; }
-                .status-text { font-size: 0.75rem; color: #94a3b8; }
+        .chat-header {
+          z-index: 50;
+          padding: 1rem 1.5rem;
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          background: rgba(15, 23, 42, 0.95);
+          border-bottom: 1px solid rgba(255,255,255,0.05);
+          backdrop-filter: blur(20px);
+        }
 
-                .mode-toggle-btn {
-                    background: rgba(255,255,255,0.1);
-                    border: none;
-                    padding: 0.6rem;
-                    border-radius: 10px;
-                    cursor: pointer;
-                    font-size: 1.2rem;
-                }
+        .icon-circle {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.1);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 1.2rem;
+          transition: all 0.2s;
+        }
+        .icon-circle:hover { background: rgba(255,255,255,0.2); }
 
-                .mode-selector-overlay {
-                    position: fixed;
-                    inset: 0;
-                    background: rgba(0,0,0,0.7);
-                    z-index: 100;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 1rem;
-                }
+        .bot-info { flex: 1; }
+        .bot-title { font-size: 1.1rem; margin: 0; color: #fff; font-weight: 700; }
+        .status-row { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.2rem; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .status-text { font-size: 0.75rem; color: #94a3b8; }
 
-                .mode-selector-panel {
-                    background: rgba(15, 23, 42, 0.98);
-                    border: 1px solid rgba(255,255,255,0.1);
-                    border-radius: 24px;
-                    padding: 2rem;
-                    max-width: 400px;
-                    width: 100%;
-                }
+        .mode-toggle-btn {
+          background: rgba(255,255,255,0.1);
+          border: none;
+          padding: 0.6rem;
+          border-radius: 10px;
+          cursor: pointer;
+          font-size: 1.2rem;
+          transition: all 0.2s;
+        }
 
-                .mode-selector-panel h3 {
-                    color: #fff;
-                    margin: 0 0 1.5rem;
-                    text-align: center;
-                }
+        .mode-toggle-btn:hover {
+          background: rgba(255,255,255,0.2);
+          transform: scale(1.1);
+        }
 
-                .mode-options {
-                    display: grid;
-                    gap: 0.8rem;
-                }
+        .messages-container {
+          flex: 1;
+          overflow-y: auto;
+          padding: 1.5rem;
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          z-index: 5;
+        }
 
-                .mode-option {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: flex-start;
-                    gap: 0.3rem;
-                    padding: 1rem 1.2rem;
-                    background: rgba(255,255,255,0.05);
-                    border: 1px solid rgba(255,255,255,0.1);
-                    border-radius: 12px;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    text-align: left;
-                }
+        .message-wrapper {
+          display: flex;
+          gap: 10px;
+          max-width: 85%;
+        }
 
-                .mode-option:hover {
-                    background: rgba(255,255,255,0.1);
-                    transform: translateX(4px);
-                }
+        .message-wrapper.user {
+          align-self: flex-end;
+          flex-direction: row-reverse;
+        }
 
-                .mode-option.active {
-                    background: rgba(56, 189, 248, 0.2);
-                    border-color: rgba(56, 189, 248, 0.5);
-                }
+        .avatar-small {
+          width: 32px;
+          height: 32px;
+          flex-shrink: 0;
+        }
 
-                .mode-label { font-size: 1rem; font-weight: 600; color: #fff; }
-                .mode-desc { font-size: 0.75rem; color: #94a3b8; }
+        .avatar-inner {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 800;
+          color: #020617;
+          font-size: 0.8rem;
+        }
 
-                .messages-container {
-                    flex: 1;
-                    overflow-y: auto;
-                    padding: 1.5rem;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1rem;
-                    z-index: 5;
-                }
+        .message-bubble {
+          padding: 12px 18px;
+          border-radius: 18px;
+          font-size: 0.95rem;
+          line-height: 1.5;
+          color: #e2e8f0;
+          position: relative;
+        }
 
-                .message-wrapper {
-                    display: flex;
-                    gap: 10px;
-                    max-width: 85%;
-                }
+        .message-bubble.bot {
+          background: rgba(30, 41, 59, 0.9);
+          border: 1px solid rgba(255,255,255,0.05);
+          border-top-left-radius: 4px;
+        }
 
-                .message-wrapper.user {
-                    align-self: flex-end;
-                    flex-direction: row-reverse;
-                }
+        .message-bubble.user {
+          background: var(--primary);
+          color: white;
+          border-bottom-right-radius: 4px;
+          box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+        }
 
-                .avatar-small {
-                    width: 32px;
-                    height: 32px;
-                    flex-shrink: 0;
-                }
+        .message-bubble.crisis {
+          background: rgba(239, 68, 68, 0.2);
+          border-color: rgba(239, 68, 68, 0.4);
+        }
 
-                .avatar-inner {
-                    width: 100%;
-                    height: 100%;
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-weight: 800;
-                    color: #020617;
-                    font-size: 0.8rem;
-                }
+        .technique-badge {
+          display: inline-block;
+          font-size: 0.65rem;
+          background: rgba(255,255,255,0.1);
+          padding: 0.2rem 0.5rem;
+          border-radius: 4px;
+          margin-left: 0.5rem;
+          color: #94a3b8;
+          text-transform: uppercase;
+        }
 
-                .message-bubble {
-                    padding: 12px 18px;
-                    border-radius: 18px;
-                    font-size: 0.95rem;
-                    line-height: 1.5;
-                    color: #e2e8f0;
-                    position: relative;
-                }
+        .techniques-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+          margin-top: 0.5rem;
+        }
 
-                .message-bubble.bot {
-                    background: rgba(30, 41, 59, 0.9);
-                    border: 1px solid rgba(255,255,255,0.05);
-                    border-top-left-radius: 4px;
-                }
+        .technique-chip {
+          font-size: 0.6rem;
+          background: rgba(56, 189, 248, 0.2);
+          color: #7dd3fc;
+          padding: 0.2rem 0.4rem;
+          border-radius: 8px;
+          border: 1px solid rgba(56, 189, 248, 0.3);
+        }
 
-                .message-bubble.user {
-                    background: var(--primary);
-                    color: white;
-                    border-bottom-right-radius: 4px;
-                    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
-                }
+        .emotions-detected {
+          display: flex;
+          align-items: center;
+          gap: 0.3rem;
+          margin-top: 0.5rem;
+          flex-wrap: wrap;
+        }
 
-                .message-bubble.crisis {
-                    background: rgba(239, 68, 68, 0.2);
-                    border-color: rgba(239, 68, 68, 0.4);
-                }
+        .emotions-label {
+          font-size: 0.65rem;
+          color: #94a3b8;
+        }
 
-                .message-bubble.exercise {
-                    background: rgba(52, 211, 153, 0.15);
-                    border-color: rgba(52, 211, 153, 0.3);
-                }
+        .emotion-chip {
+          font-size: 0.6rem;
+          background: rgba(167, 139, 250, 0.2);
+          color: #c4b5fd;
+          padding: 0.2rem 0.4rem;
+          border-radius: 8px;
+          border: 1px solid rgba(167, 139, 250, 0.3);
+        }
 
-                .technique-badge {
-                    display: inline-block;
-                    font-size: 0.65rem;
-                    background: rgba(255,255,255,0.1);
-                    padding: 0.2rem 0.5rem;
-                    border-radius: 4px;
-                    margin-left: 0.5rem;
-                    color: #94a3b8;
-                    text-transform: uppercase;
-                }
+        .educational-content {
+          margin-top: 0.8rem;
+          padding: 0.8rem;
+          background: rgba(52, 211, 153, 0.1);
+          border: 1px solid rgba(52, 211, 153, 0.2);
+          border-radius: 8px;
+        }
 
-                .techniques-list {
-                    display: flex;
-                    flex-wrap: wrap;
-                    gap: 0.3rem;
-                    margin-top: 0.5rem;
-                }
+        .edu-title {
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #34d399;
+          margin-bottom: 0.3rem;
+        }
 
-                .technique-chip {
-                    font-size: 0.6rem;
-                    background: rgba(56, 189, 248, 0.2);
-                    color: #7dd3fc;
-                    padding: 0.2rem 0.4rem;
-                    border-radius: 8px;
-                    border: 1px solid rgba(56, 189, 248, 0.3);
-                }
+        .edu-desc {
+          font-size: 0.7rem;
+          color: #94a3b8;
+          line-height: 1.4;
+        }
 
-                .emotions-detected {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.3rem;
-                    margin-top: 0.5rem;
-                    flex-wrap: wrap;
-                }
+        .feedback-controls {
+          display: flex;
+          gap: 8px;
+          margin-top: 10px;
+          justify-content: flex-end;
+          opacity: 0.6;
+          transition: opacity 0.2s;
+        }
 
-                .emotions-label {
-                    font-size: 0.65rem;
-                    color: #94a3b8;
-                }
+        .feedback-controls:hover { opacity: 1; }
 
-                .emotion-chip {
-                    font-size: 0.6rem;
-                    background: rgba(167, 139, 250, 0.2);
-                    color: #c4b5fd;
-                    padding: 0.2rem 0.4rem;
-                    border-radius: 8px;
-                    border: 1px solid rgba(167, 139, 250, 0.3);
-                }
+        .feedback-controls button {
+          background: rgba(255,255,255,0.1);
+          border: none;
+          padding: 4px 10px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 0.9rem;
+          transition: all 0.2s;
+        }
 
-                .educational-content {
-                    margin-top: 0.8rem;
-                    padding: 0.8rem;
-                    background: rgba(52, 211, 153, 0.1);
-                    border: 1px solid rgba(52, 211, 153, 0.2);
-                    border-radius: 8px;
-                }
+        .feedback-controls button:hover {
+          background: rgba(255,255,255,0.2);
+          transform: scale(1.1);
+        }
 
-                .edu-title {
-                    font-size: 0.75rem;
-                    font-weight: 600;
-                    color: #34d399;
-                    margin-bottom: 0.3rem;
-                }
+        .typing-bubble {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          padding: 15px 20px;
+        }
 
-                .edu-desc {
-                    font-size: 0.7rem;
-                    color: #94a3b8;
-                    line-height: 1.4;
-                }
+        .dot {
+          width: 6px;
+          height: 6px;
+          background: #94a3b8;
+          border-radius: 50%;
+          animation: bounce 1.4s infinite ease-in-out both;
+        }
 
-                .feedback-controls {
-                    display: flex;
-                    gap: 8px;
-                    margin-top: 10px;
-                    justify-content: flex-end;
-                    opacity: 0.6;
-                    transition: opacity 0.2s;
-                }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
 
-                .feedback-controls:hover { opacity: 1; }
+        @keyframes bounce {
+          0%, 80%, 100% { transform: scale(0); }
+          40% { transform: scale(1); }
+        }
 
-                .feedback-controls button {
-                    background: rgba(255,255,255,0.1);
-                    border: none;
-                    padding: 4px 10px;
-                    border-radius: 6px;
-                    cursor: pointer;
-                    font-size: 0.9rem;
-                    transition: all 0.2s;
-                }
+        .suggested-tools {
+          display: flex;
+          align-items: center;
+          gap: 0.6rem;
+          padding: 0.5rem 1.5rem;
+          z-index: 10;
+        }
 
-                .feedback-controls button:hover {
-                    background: rgba(255,255,255,0.2);
-                    transform: scale(1.1);
-                }
+        .tools-label {
+          font-size: 0.75rem;
+          color: #64748b;
+        }
 
-                .typing-bubble {
-                    display: flex;
-                    align-items: center;
-                    gap: 4px;
-                    padding: 15px 20px;
-                }
+        .tool-chip {
+          padding: 0.4rem 0.8rem;
+          background: rgba(56, 189, 248, 0.15);
+          border: 1px solid rgba(56, 189, 248, 0.3);
+          border-radius: 20px;
+          font-size: 0.75rem;
+          color: #7dd3fc;
+          text-decoration: none;
+          transition: all 0.2s;
+        }
 
-                .dot {
-                    width: 6px;
-                    height: 6px;
-                    background: #94a3b8;
-                    border-radius: 50%;
-                    animation: bounce 1.4s infinite ease-in-out both;
-                }
+        .tool-chip:hover {
+          background: rgba(56, 189, 248, 0.25);
+        }
 
-                .dot:nth-child(1) { animation-delay: -0.32s; }
-                .dot:nth-child(2) { animation-delay: -0.16s; }
+        .quick-replies {
+          display: flex;
+          gap: 0.6rem;
+          padding: 0.5rem 1.5rem;
+          overflow-x: auto;
+          z-index: 10;
+          scrollbar-width: none;
+        }
 
-                @keyframes bounce {
-                    0%, 80%, 100% { transform: scale(0); }
-                    40% { transform: scale(1); }
-                }
+        .chip {
+          white-space: nowrap;
+          padding: 0.5rem 1rem;
+          border-radius: 20px;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.1);
+          color: #cbd5e1;
+          cursor: pointer;
+          transition: all 0.2s;
+          font-size: 0.85rem;
+        }
 
-                .suggested-tools {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.6rem;
-                    padding: 0.5rem 1.5rem;
-                    z-index: 10;
-                }
+        .chip:hover {
+          background: rgba(56, 189, 248, 0.15);
+          border-color: rgba(56, 189, 248, 0.4);
+          color: white;
+        }
 
-                .tools-label {
-                    font-size: 0.75rem;
-                    color: #64748b;
-                }
+        .input-area {
+          z-index: 10;
+          padding: 1rem 1.5rem 1.5rem;
+          background: rgba(15, 23, 42, 0.95);
+          backdrop-filter: blur(20px);
+        }
 
-                .tool-chip {
-                    padding: 0.4rem 0.8rem;
-                    background: rgba(56, 189, 248, 0.15);
-                    border: 1px solid rgba(56, 189, 248, 0.3);
-                    border-radius: 20px;
-                    font-size: 0.75rem;
-                    color: #7dd3fc;
-                    text-decoration: none;
-                    transition: all 0.2s;
-                }
+        .input-form {
+          display: flex;
+          gap: 0.8rem;
+          background: rgba(30, 41, 59, 0.6);
+          padding: 6px;
+          padding-left: 20px;
+          border-radius: 30px;
+          border: 1px solid rgba(255,255,255,0.1);
+        }
 
-                .tool-chip:hover {
-                    background: rgba(56, 189, 248, 0.25);
-                }
+        .chat-input {
+          flex: 1;
+          background: transparent;
+          border: none;
+          color: white;
+          font-size: 1rem;
+        }
 
-                .quick-replies {
-                    display: flex;
-                    gap: 0.6rem;
-                    padding: 0.5rem 1.5rem;
-                    overflow-x: auto;
-                    z-index: 10;
-                    scrollbar-width: none;
-                }
+        .chat-input:focus { outline: none; }
+        .chat-input::placeholder { color: #64748b; }
+        .chat-input:disabled { opacity: 0.5; }
 
-                .chip {
-                    white-space: nowrap;
-                    padding: 0.5rem 1rem;
-                    border-radius: 20px;
-                    background: rgba(255,255,255,0.05);
-                    border: 1px solid rgba(255,255,255,0.1);
-                    color: #cbd5e1;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    font-size: 0.85rem;
-                }
+        .send-btn {
+          width: 45px;
+          height: 45px;
+          border-radius: 50%;
+          border: none;
+          color: #020617;
+          cursor: pointer;
+          font-size: 1.1rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+          font-weight: bold;
+        }
 
-                .chip:hover {
-                    background: rgba(56, 189, 248, 0.15);
-                    border-color: rgba(56, 189, 248, 0.4);
-                    color: white;
-                }
+        .send-btn:hover:not(:disabled) { transform: scale(1.08); }
+        .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-                .input-area {
-                    z-index: 10;
-                    padding: 1rem 1.5rem 1.5rem;
-                    background: rgba(15, 23, 42, 0.95);
-                    backdrop-filter: blur(20px);
-                }
+        .feedback-toast {
+          position: fixed;
+          bottom: 100px;
+          left: 50%;
+          transform: translateX(-50%) translateY(100px);
+          background: rgba(30, 41, 59, 0.95);
+          color: #e2e8f0;
+          padding: 0.8rem 1.5rem;
+          border-radius: 10px;
+          font-size: 0.85rem;
+          opacity: 0;
+          transition: all 0.3s;
+          z-index: 200;
+        }
 
-                .input-form {
-                    display: flex;
-                    gap: 0.8rem;
-                    background: rgba(30, 41, 59, 0.6);
-                    padding: 6px;
-                    padding-left: 20px;
-                    border-radius: 30px;
-                    border: 1px solid rgba(255,255,255,0.1);
-                }
-
-                .chat-input {
-                    flex: 1;
-                    background: transparent;
-                    border: none;
-                    color: white;
-                    font-size: 1rem;
-                }
-
-                .chat-input:focus { outline: none; }
-                .chat-input::placeholder { color: #64748b; }
-                .chat-input:disabled { opacity: 0.5; }
-
-                .send-btn {
-                    width: 45px;
-                    height: 45px;
-                    border-radius: 50%;
-                    border: none;
-                    color: #020617;
-                    cursor: pointer;
-                    font-size: 1.1rem;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    transition: all 0.2s;
-                    font-weight: bold;
-                }
-
-                .send-btn:hover:not(:disabled) { transform: scale(1.08); }
-                .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-                .feedback-toast {
-                    position: fixed;
-                    bottom: 100px;
-                    left: 50%;
-                    transform: translateX(-50%) translateY(100px);
-                    background: rgba(30, 41, 59, 0.95);
-                    color: #e2e8f0;
-                    padding: 0.8rem 1.5rem;
-                    border-radius: 10px;
-                    font-size: 0.85rem;
-                    opacity: 0;
-                    transition: all 0.3s;
-                    z-index: 200;
-                }
-
-                .feedback-toast.show {
-                    opacity: 1;
-                    transform: translateX(-50%) translateY(0);
-                }
-            `}</style>
+        .feedback-toast.show {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+      `}</style>
     </main>
   );
 }
